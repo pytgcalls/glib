@@ -4,6 +4,7 @@ source <(curl -s https://raw.githubusercontent.com/pytgcalls/build-toolkit/refs/
 require_venv
 
 GLIB_VERSION=$(get_version "glib")
+EXPAT_VERSION=$(get_version "expat")
 
 ARCH=$(uname -m)
 if [[ "$ARCH" == "x86_64" ]]; then
@@ -13,11 +14,12 @@ else
     C_ARGS=""
     CPP_ARGS=""
 fi
-
+build_and_install https://github.com/libexpat/libexpat.git "R_${EXPAT_VERSION//./_}" configure-static --prefix="$(pwd)/libexpat/build/" --setup-commands="cd expat" --cleanup-commands="cd .."
 build_and_install https://github.com/GNOME/glib.git "$GLIB_VERSION" meson-static --prefix="$(pwd)/glib/build/" --buildtype=plain -Dtests=false -Dc_args="$C_ARGS" -Dcpp_args="$CPP_ARGS"
 
 mkdir -p artifacts/lib
 mkdir -p artifacts/include
 cp -r "$(pwd)"/glib/build/lib/*.a artifacts/lib/
+cp -r "$(pwd)"/libexpat/build/lib/*.a artifacts/lib/
 cp -r "$(pwd)"/glib/build/include/glib-2.0/* artifacts/include/
 cp "$(pwd)"/glib/build/lib/glib-2.0/include/glibconfig.h artifacts/include/
