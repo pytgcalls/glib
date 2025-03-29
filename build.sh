@@ -5,7 +5,16 @@ require_venv
 
 GLIB_VERSION=$(get_version "glib")
 
-build_and_install https://github.com/GNOME/glib.git "$GLIB_VERSION" meson-static --prefix="$(pwd)/glib/build/" --buildtype=plain -Dtests=false
+ARCH=$(uname -m)
+if [[ "$ARCH" == "x86_64" ]]; then
+    C_ARGS="-mno-avx2"
+    CPP_ARGS="-mno-avx2"
+else
+    C_ARGS=""
+    CPP_ARGS=""
+fi
+
+build_and_install https://github.com/GNOME/glib.git "$GLIB_VERSION" meson-static --prefix="$(pwd)/glib/build/" --buildtype=plain -Dtests=false -Dc_args="$C_ARGS" -Dcpp_args="$CPP_ARGS"
 
 mkdir -p artifacts/lib
 mkdir -p artifacts/include
