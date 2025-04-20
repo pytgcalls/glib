@@ -1,25 +1,23 @@
-# shellcheck disable=SC1090
-source <(curl -s https://raw.githubusercontent.com/pytgcalls/build-toolkit/refs/heads/master/build-toolkit.sh)
+source /dev/stdin <<< "$(curl -s https://raw.githubusercontent.com/pytgcalls/build-toolkit/refs/heads/master/build-toolkit.sh)"
 
-require_venv
+require venv
 
-GLIB_VERSION=$(get_version "glib")
-EXPAT_VERSION=$(get_version "expat")
+import .env
+import libraries.properties
+import meson from python3
+import ninja from python3
 
-ARCH=$(uname -m)
-if [[ "$ARCH" == "x86_64" ]]; then
+if [[ "$(uname -m)" == "x86_64" ]]; then
     C_ARGS="-mno-avx2"
     CPP_ARGS="-mno-avx2"
 else
     C_ARGS=""
     CPP_ARGS=""
 fi
-build_and_install https://github.com/libexpat/libexpat.git "R_${EXPAT_VERSION//./_}" configure-static --prefix="$(pwd)/libexpat/build/" --setup-commands="cd expat" --cleanup-commands="cd .."
-build_and_install https://github.com/GNOME/glib.git "$GLIB_VERSION" meson-static --prefix="$(pwd)/glib/build/" --buildtype=plain -Dtests=false -Dc_args="$C_ARGS" -Dcpp_args="$CPP_ARGS"
 
-mkdir -p artifacts/lib
-mkdir -p artifacts/include
-cp -r "$(pwd)"/glib/build/lib/*.a artifacts/lib/
-cp -r "$(pwd)"/libexpat/build/lib/*.a artifacts/lib/
-cp -r "$(pwd)"/glib/build/include/glib-2.0/* artifacts/include/
-cp "$(pwd)"/glib/build/lib/glib-2.0/include/glibconfig.h artifacts/include/
+build_and_install "libexpat/expat" configure-static
+build_and_install "glib" meson-static --buildtype=plain -Dtests=false -Dc_args="$C_ARGS" -Dcpp_args="$CPP_ARGS"
+
+copy_libs "libexpat" "artifacts"
+copy_libs "glib" "artifacts" "ffi" "pcre2-8" "gmodule-2.0" "glib-2.0" "gobject-2.0" "gio-2.0"
+cp "$DEFAULT_BUILD_FOLDER/glib/build/lib/glib-2.0/include/glibconfig.h" artifacts/include/glib-2.0
