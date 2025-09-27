@@ -16,7 +16,8 @@ else
 fi
 
 build_and_install "libexpat/expat" configure-static
-build_and_install "glib" meson-static --buildtype=plain -Dtests=false -Dc_args="$C_ARGS" -Dcpp_args="$CPP_ARGS"
+build_and_install "glib" meson-static --buildtype=plain -Dtests=false -Dc_args="$C_ARGS" -Dcpp_args="$CPP_ARGS" \
+  --force-fallback-for=libpcre2-8,libffi
 
 copy_libs "libexpat" "artifacts"
 copy_libs "glib" "artifacts" "ffi" "pcre2-8" "gmodule-2.0" "glib-2.0" "gobject-2.0" "gio-2.0"
