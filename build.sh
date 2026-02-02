@@ -2,7 +2,6 @@ source /dev/stdin <<< "$(curl -s https://raw.githubusercontent.com/pytgcalls/bui
 
 require venv
 
-import .env
 import libraries.properties
 import meson from python3
 import ninja from python3
