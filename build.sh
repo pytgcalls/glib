@@ -14,10 +14,17 @@ else
     CPP_ARGS=""
 fi
 
+FALLBACK_DEPS="libpcre2-8,libffi"
+GLIB_LIBS=("ffi" "pcre2-8" "gmodule-2.0" "glib-2.0" "gobject-2.0" "gio-2.0")
+if is_musl; then
+    FALLBACK_DEPS="$FALLBACK_DEPS,intl"
+    GLIB_LIBS+=("intl")
+fi
+
 build_and_install "libexpat/expat" configure-static
-build_and_install "glib" meson-static --buildtype=plain -Dtests=false -Dc_args="$C_ARGS" -Dcpp_args="$CPP_ARGS" \
-  --force-fallback-for=libpcre2-8,libffi
+build_and_install "glib" meson-static --buildtype=plain -Dtests=false -Dlibmount=disabled -Dc_args="$C_ARGS" -Dcpp_args="$CPP_ARGS" \
+  --force-fallback-for="$FALLBACK_DEPS"
 
 copy_libs "libexpat" "artifacts"
-copy_libs "glib" "artifacts" "ffi" "pcre2-8" "gmodule-2.0" "glib-2.0" "gobject-2.0" "gio-2.0"
+copy_libs "glib" "artifacts" "${GLIB_LIBS[@]}"
 cp "$DEFAULT_BUILD_FOLDER/glib/build/lib/glib-2.0/include/glibconfig.h" artifacts/include/glib-2.0
